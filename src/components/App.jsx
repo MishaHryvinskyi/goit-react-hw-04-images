@@ -5,7 +5,7 @@ import Loader from './Loader/Loader';
 import Button from './Button/Button';
 import Modal from './Modal/Modal';
 import fetchImages from './API/api';
-
+// 
 const App = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
