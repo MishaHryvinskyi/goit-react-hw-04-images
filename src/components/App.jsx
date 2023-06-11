@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Loader from './Loader/Loader';
@@ -6,73 +6,69 @@ import Button from './Button/Button';
 import Modal from './Modal/Modal';
 import fetchImages from './API/api';
 
-class App extends Component {
-  state = {
-    images: [],
-    loading: false,
-    search: '',
-    page: 1,
-    showModal: false,
-    selectedImage: null,
-  };
+const App = () => {
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isFetching, setIsFetching] = useState(false);
 
-  handleFormSubmit = search => {
-    this.setState({ search, page: 1, images: [], loading: true });
-  };
-
-  handleLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
-  };
-
-  fetchImages = () => {
-    const { search, page, images } = this.state;
-
-    fetchImages(search, page, images)
-      .then(updatedState => {
-        this.setState(updatedState);
-      });
-  };
-
-  openModal = image => {
-    this.setState({ showModal: true, selectedImage: image });
-  };
-
-  closeModal = () => {
-    this.setState({ showModal: false, selectedImage: null });
-  };
-
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.search !== this.state.search ||
-      prevState.page !== this.state.page
-    ) {
-      this.fetchImages();
+  useEffect(() => {
+    if (search !== '' || page !== 1) {
+      fetchImages(search, page, images)
+        .then(updatedState => {
+          setImages(updatedState.images);
+          setLoading(false);
+          setIsFetching(false);
+        })
+        .catch(error => {
+          console.log('Error fetching data:', error);
+          setLoading(false);
+          setIsFetching(false);
+        });
     }
-  }
+  }, [search, page]);
 
-  render() {
-    const { images, loading, showModal, selectedImage, showLoadMoreButton } = this.state;
+  const handleFormSubmit = searchValue => {
+    setSearch(searchValue);
+    setPage(1);
+    setImages([]);
+    setLoading(true);
+  };
 
-    return (
-      <div>
-        <Searchbar onSubmit={this.handleFormSubmit} />
-        {loading && <Loader />}
-        {images.length > 0 && (
-          <ImageGallery images={images} openModal={this.openModal} />
-        )}
-        {showLoadMoreButton && images.length >= 12 && (
-          <Button onClick={this.handleLoadMore} />
-        )}
-        {showModal && (
-          <Modal onClose={this.closeModal}>
-            <img src={selectedImage.largeImageURL} alt={selectedImage.tags} />
-          </Modal>
-        )}
-      </div>
-    );
-  }
-}
+  const handleLoadMore = () => {
+    setPage(prevPage => prevPage + 1);
+  };
+
+  const openModal = image => {
+    setSelectedImage(image);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedImage(null);
+  };
+
+  return (
+    <div>
+      <Searchbar onSubmit={handleFormSubmit} />
+      {loading && <Loader />}
+      {images.length > 0 && (
+        <ImageGallery images={images} openModal={openModal} />
+      )}
+      {images.length >= 12 && (
+        <Button onClick={handleLoadMore} />
+      )}
+      {showModal && (
+        <Modal onClose={closeModal}>
+          <img src={selectedImage.largeImageURL} alt={selectedImage.tags} />
+        </Modal>
+      )}
+    </div>
+  );
+};
 
 export default App;
