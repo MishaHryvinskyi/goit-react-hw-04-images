@@ -5,7 +5,7 @@ import Loader from './Loader/Loader';
 import Button from './Button/Button';
 import Modal from './Modal/Modal';
 import fetchImages from './API/api';
-
+// 
 const App = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,6 @@ const App = () => {
 
   useEffect(() => {
     if (search !== '' || page !== 1) {
-      setIsFetching(true);
       fetchImages(search, page, images)
         .then(updatedState => {
           setImages(updatedState.images);
@@ -60,7 +59,9 @@ const App = () => {
       {images.length > 0 && (
         <ImageGallery images={images} openModal={openModal} />
       )}
-      {images.length >= 12 && <Button onClick={handleLoadMore} />}
+      {images.length >= 12 && (
+        <Button onClick={handleLoadMore} />
+      )}
       {showModal && (
         <Modal onClose={closeModal}>
           <img src={selectedImage.largeImageURL} alt={selectedImage.tags} />
